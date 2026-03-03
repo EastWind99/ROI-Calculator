@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap EAV Calculator</title>
+  <style>
+    /* ── Variables ─────────────────────────────────────────── */
+    :root {
+      --primary:      #2563eb;
+      --primary-dk:   #1d4ed8;
+      --success:      #059669;
+      --warning-clr:  #92400e;
+      --warning-bg:   #fffbeb;
+      --warning-bdr:  #f59e0b;
+      --danger-clr:   #dc2626;
+      --danger-bg:    #fef2f2;
+      --text:         #1f2937;
+      --muted:        #6b7280;
+      --border:       #e5e7eb;
+      --surface:      #ffffff;
+      --page-bg:      #f3f4f6;
+      --radius:       10px;
+      --shadow:       0 2px 8px rgba(0,0,0,0.08);
+      --transition:   0.16s ease;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    /* ── Base ──────────────────────────────────────────────── */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--page-bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+      line-height: 1.5;
+    }
+
+    /* ── Layout ────────────────────────────────────────────── */
+    .app {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .app-header h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .app-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    /* ── Breadcrumb ─────────────────────────────────────────── */
+    #breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1.4rem;
+    }
+    .crumb { color: var(--muted); }
+    .crumb-active { color: var(--text); font-weight: 600; }
+    .crumb-sep { color: var(--border); margin: 0 0.1rem; }
+
+    /* ── Section visibility ─────────────────────────────────── */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* ── Section headings ───────────────────────────────────── */
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .section-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Path-choice cards grid ─────────────────────────────── */
+    .choice-grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .choice-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.3rem;
+      text-align: left;
+      width: 100%;
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+    .choice-card:hover, .choice-card:focus-visible {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.14);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .choice-card .card-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .choice-card .card-body {}
+    .choice-card .card-label {
+      font-weight: 700;
+      font-size: 0.97rem;
+      color: var(--text);
+      display: block;
+    }
+    .choice-card .card-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      display: block;
+    }
+
+    /* ── Form card ──────────────────────────────────────────── */
+    .form-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.75rem;
+    }
+
+    .field-group { margin-bottom: 1.2rem; }
+
+    .field-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .field-label .required-star { color: var(--danger-clr); margin-left: 2px; }
+
+    .field-hint {
+      display: block;
+      font-size: 0.77rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.93rem;
+      color: var(--text);
+      background: #fff;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      appearance: auto;
+    }
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    textarea { resize: vertical; min-height: 72px; }
+
+    .field-error {
+      display: block;
+      color: var(--danger-clr);
+      font-size: 0.77rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Inline warning (hours) ─────────────────────────────── */
+    .inline-warning {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--warning-clr);
+      background: var(--warning-bg);
+      border-left: 3px solid var(--warning-bdr);
+      border-radius: 4px;
+      padding: 0.45rem 0.75rem;
+      margin-top: 0.4rem;
+    }
+    .inline-warning.show { display: block; }
+
+    /* ── Warning banners ────────────────────────────────────── */
+    .banner {
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.86rem;
+      border-left: 4px solid;
+    }
+    .banner-warning {
+      background: var(--warning-bg);
+      border-color: var(--warning-bdr);
+      color: var(--warning-clr);
+    }
+    .banner-danger {
+      background: var(--danger-bg);
+      border-color: var(--danger-clr);
+      color: var(--danger-clr);
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.6rem 1.3rem;
+      border-radius: 7px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: 2px solid transparent;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary-dk); border-color: var(--primary-dk); }
+    .btn-secondary {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+    .btn-secondary:hover { opacity: 0.85; }
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--text); }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.5rem;
+    }
+
+    /* ── Result screen ──────────────────────────────────────── */
+    .result-summary {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { font-size: 0.9rem; color: var(--muted); }
+    .result-value { font-weight: 700; font-size: 0.97rem; text-align: right; }
+    .result-eav-row .result-label { color: var(--text); font-weight: 700; font-size: 1rem; }
+    .result-eav-row .result-value { color: var(--success); font-size: 1.6rem; }
+
+    .multiplier-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+    }
+    .multiplier-table th {
+      text-align: left;
+      padding: 0.55rem 1rem;
+      background: var(--page-bg);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .multiplier-table td {
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .multiplier-table tr:last-child td { border-bottom: none; }
+    .mult-val { text-align: right; font-weight: 700; font-family: "Courier New", monospace; }
+
+    .formula-block {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      font-family: "Courier New", monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--border);
+    }
+
+    .result-notes {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem 1.2rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      white-space: pre-wrap;
+    }
+
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 1.75rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #111827;
+      color: #fff;
+      padding: 0.55rem 1.3rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      body { padding: 1rem 0.75rem 3rem; }
+      .form-card { padding: 1.1rem; }
+      .result-summary { padding: 1rem; }
+      .result-eav-row .result-value { font-size: 1.25rem; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header class="app-header">
+    <h1>Roadmap EAV Calculator</h1>
+    <p>Expected Annual Value &mdash; Feature Intake Prioritization</p>
+  </header>
+
+  <nav id="breadcrumb" aria-label="breadcrumb"></nav>
+
+  <!-- Step 0: Home -->
+  <div id="sec-home" class="section">
+    <p class="section-title">Select Calculator Type</p>
+    <p class="section-sub">Choose the type of feature request you are evaluating.</p>
+    <div class="choice-grid" id="home-grid"></div>
+  </div>
+
+  <!-- Step 1: Subtype -->
+  <div id="sec-subtype" class="section">
+    <p class="section-title" id="subtype-title"></p>
+    <p class="section-sub">Choose a sub-category.</p>
+    <div class="choice-grid" id="subtype-grid"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="subtype-back">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Sub-subtype -->
+  <div id="sec-subsubtype" class="section">
+    <p class="section-title" id="subsubtype-title"></p>
+    <p class="section-sub">Choose a revenue type.</p>
+    <div class="choice-grid" id="subsubtype-grid"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="subsubtype-back">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Form -->
+  <div id="sec-form" class="section">
+    <p class="section-title" id="form-title"></p>
+    <div class="form-card">
+      <form id="calc-form" novalidate>
+        <div id="form-fields"></div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Calculate EAV &#8594;</button>
+          <button type="button" class="btn btn-outline" id="form-back">&#8592; Back</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Step 4: Result -->
+  <div id="sec-result" class="section">
+    <div id="result-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-copy">&#128203; Copy Summary</button>
+      <button class="btn btn-outline" id="btn-back-result">&#8592; Back</button>
+      <button class="btn btn-outline" id="btn-start-over">&#8635; Start Over</button>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   1. CONFIG
+═══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  constants: {
+    RF: 0.7,
+    EAV_THRESHOLD: 25000000,
+    HOURS_WARN: 40,
+  },
+
+  probabilityOptions: [
+    { label: "5 – Very High likelihood", value: "1.0",  display: "1.0"  },
+    { label: "4 – High likelihood",      value: "0.75", display: "0.75" },
+    { label: "3 – Moderate likelihood",  value: "0.5",  display: "0.5"  },
+    { label: "2 – Low likelihood",       value: "0.25", display: "0.25" },
+    { label: "1 – Very Low likelihood",  value: "0.1",  display: "0.1"  },
+  ],
+
+  evidenceOptions: [
+    { label: "5 – Validated by signed contracts, data, or direct research", value: "1.0",  display: "1.0"  },
+    { label: "4 – Strong signal from multiple sources",                     value: "0.75", display: "0.75" },
+    { label: "3 – Reasonable assumption with some evidence",                value: "0.5",  display: "0.5"  },
+    { label: "2 – Hypothesis with limited evidence",                        value: "0.25", display: "0.25" },
+    { label: "1 – Speculative; no evidence base",                           value: "0.1",  display: "0.1"  },
+  ],
+
+  salesStageOptions: [
+    { label: "Not Started", value: "0.25", display: "0.25" },
+    { label: "Discovery",   value: "0.4",  display: "0.4"  },
+    { label: "Demo",        value: "0.6",  display: "0.6"  },
+    { label: "Proposal",    value: "0.75", display: "0.75" },
+    { label: "Awarded",     value: "1.0",  display: "1.0"  },
+  ],
+
+  winRateOptions: [
+    { label: "Low",    value: "0.1",  display: "0.1"  },
+    { label: "Medium", value: "0.25", display: "0.25" },
+    { label: "High",   value: "0.4",  display: "0.4"  },
+  ],
+
+  personaOptions: [
+    { label: "Data Entry ($20/hr)",           value: "20",  display: "$20/hr"  },
+    { label: "Project Manager ($40/hr)",      value: "40",  display: "$40/hr"  },
+    { label: "Upper Management ($100/hr)",    value: "100", display: "$100/hr" },
+    { label: "Executive Leadership ($200/hr)",value: "200", display: "$200/hr" },
+  ],
+
+  paths: {
+    "project-team": {
+      label: "Project Team Feature Request",
+      icon: "🏗️",
+      desc: "Internal team requests tied to contract value or efficiency",
+      hasSubtypes: true,
+      subtypes: {
+        "contract-value": {
+          label: "Contract Value",
+          icon: "📄",
+          desc: "Tied to a specific customer contract or ARR",
+          hasSubtypes: true,
+          subtypes: {
+            "new-revenue": {
+              label: "New Revenue",
+              icon: "📈",
+              desc: "Feature wins new business",
+              formulaKey: "PT_CV_NEW",
+              fields: [
+                { id: "acv",         label: "Annual Contract Value",         type: "number",   min: 0, max: 99999999, prefix: "$", required: true, hint: "Total annual value of the contract" },
+                { id: "probability", label: "Realization Probability",       type: "select",   options: "probabilityOptions", required: true, hint: "How likely is this value to be realized?" },
+                { id: "evidence",    label: "Evidence Quality",              type: "select",   options: "evidenceOptions",    required: true, hint: "How strong is your supporting evidence?" },
+                { id: "notes",       label: "Notes (optional)",              type: "textarea", required: false },
+              ],
+            },
+            "retention": {
+              label: "Retention",
+              icon: "🔒",
+              desc: "Feature retains existing revenue at risk",
+              formulaKey: "PT_CV_RET",
+              fields: [
+                { id: "acv",          label: "Annual Contract Value",       type: "number",   min: 0, max: 99999999, prefix: "$", required: true },
+                { id: "revenueAtRisk",label: "% Revenue At Risk",           type: "number",   min: 0, max: 100, suffix: "%", required: true, hint: "What percentage of this contract is at risk?" },
+                { id: "probability",  label: "Realization Probability",     type: "select",   options: "probabilityOptions", required: true },
+                { id: "evidence",     label: "Evidence Quality",            type: "select",   options: "evidenceOptions",    required: true },
+                { id: "notes",        label: "Notes (optional)",            type: "textarea", required: false },
+              ],
+            },
+          },
+        },
+        "operational-efficiency": {
+          label: "Operational Efficiency Gain",
+          icon: "⚙️",
+          desc: "Time savings multiplied across the internal team",
+          hasSubtypes: false,
+          formulaKey: "PT_OE",
+          fields: [
+            { id: "hoursSaved",  label: "Hours saved per employee per month", type: "number", min: 0, max: 160, required: true, hint: "Typical monthly capacity is ~160 hrs", hoursWarn: true },
+            { id: "teamMembers", label: "Number of team members impacted",    type: "number", min: 0, max: 200, required: true },
+            { id: "hourlyCost",  label: "Avg Loaded Hourly Cost",             type: "number", min: 0, max: 9999, prefix: "$", required: true },
+            { id: "probability", label: "Realization Probability",            type: "select", options: "probabilityOptions", required: true },
+            { id: "evidence",    label: "Evidence Quality",                   type: "select", options: "evidenceOptions",    required: true },
+            { id: "notes",       label: "Notes (optional)",                   type: "textarea", required: false },
+          ],
+        },
+      },
+    },
+
+    "sales": {
+      label: "Sales Feature Request",
+      icon: "💼",
+      desc: "Opportunity linked to a deal in the sales pipeline",
+      hasSubtypes: false,
+      formulaKey: "SALES",
+      fields: [
+        { id: "acv",        label: "Annual Contract Value",   type: "number", min: 0, max: 99999999, prefix: "$", required: true },
+        { id: "salesStage", label: "Sales Stage",            type: "select", options: "salesStageOptions", required: true, hint: "Stage auto-maps to Realization Probability" },
+        { id: "evidence",   label: "Evidence Quality",       type: "select", options: "evidenceOptions",   required: true },
+        { id: "notes",      label: "Notes (optional)",       type: "textarea", required: false },
+      ],
+    },
+
+    "product-market": {
+      label: "Product / Market Feature Request",
+      icon: "🌐",
+      desc: "Efficiency gains for end users or competitive market positioning",
+      hasSubtypes: true,
+      subtypes: {
+        "user-efficiency": {
+          label: "User Operational Efficiency",
+          icon: "👥",
+          desc: "Time savings realized by product end users",
+          hasSubtypes: false,
+          formulaKey: "PM_UOE",
+          fields: [
+            { id: "hoursSaved",    label: "Hours saved per user per month", type: "number", min: 0, max: 160, required: true, hint: "Typical monthly capacity is ~160 hrs", hoursWarn: true },
+            { id: "usersImpacted", label: "Users impacted",                 type: "number", min: 0, max: 200, required: true },
+            { id: "persona",       label: "Persona (Hourly Rate)",          type: "select", options: "personaOptions", required: true, hint: "Select the closest persona match" },
+            { id: "probability",   label: "Realization Probability",        type: "select", options: "probabilityOptions", required: true, hint: "Adoption likelihood" },
+            { id: "evidence",      label: "Evidence Quality",               type: "select", options: "evidenceOptions",    required: true },
+            { id: "notes",         label: "Notes (optional)",               type: "textarea", required: false },
+          ],
+        },
+        "market-competitiveness": {
+          label: "Market Competitiveness Increase",
+          icon: "🏆",
+          desc: "New deal opportunities unlocked by the feature",
+          hasSubtypes: false,
+          formulaKey: "PM_MCI",
+          fields: [
+            { id: "opportunities", label: "Opportunities opened",           type: "number", min: 0, max: 1000, required: true },
+            { id: "avgAcv",        label: "Avg Annual Contract Value",      type: "number", min: 0, max: 99999999, prefix: "$", required: true },
+            { id: "winRate",       label: "Win Rate",                       type: "select", options: "winRateOptions",     required: true },
+            { id: "probability",   label: "Realization Probability",        type: "select", options: "probabilityOptions", required: true },
+            { id: "evidence",      label: "Evidence Quality",               type: "select", options: "evidenceOptions",    required: true },
+            { id: "notes",         label: "Notes (optional)",               type: "textarea", required: false },
+          ],
+        },
+      },
+    },
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   2. STATE
+═══════════════════════════════════════════════════════════════ */
+let state = {
+  step: 0,          // 0=home | 1=subtype | 2=sub-subtype | 3=form | 4=result
+  pathType: null,
+  subType: null,
+  subSubType: null,
+  values: {},
+  lastResult: null,
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   3. UTILITIES
+═══════════════════════════════════════════════════════════════ */
+function formatMoney(n) {
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function getProbabilityMultiplier(v) { return parseFloat(v); }
+function getEvidenceMultiplier(v)    { return parseFloat(v); }
+
+function getLabelFromOptions(optKey, val) {
+  const opts = CONFIG[optKey] || [];
+  const found = opts.find(o => String(o.value) === String(val));
+  return found ? found.label : String(val);
+}
+
+function validateField(fieldDef, val) {
+  if (fieldDef.type === "textarea" || !fieldDef.required) {
+    return { valid: true, message: "" };
+  }
+  const str = String(val === undefined || val === null ? "" : val).trim();
+  if (str === "" || str === "0" && fieldDef.type === "select") {
+    if (str === "") return { valid: false, message: "This field is required." };
+  }
+  if (str === "") return { valid: false, message: "This field is required." };
+  if (fieldDef.type === "number") {
+    const n = Number(str);
+    if (isNaN(n)) return { valid: false, message: "Must be a valid number." };
+    if (fieldDef.min !== undefined && n < fieldDef.min) {
+      return { valid: false, message: `Must be at least ${fieldDef.min}.` };
+    }
+    if (fieldDef.max !== undefined && n > fieldDef.max) {
+      return { valid: false, message: `Must be at most ${fieldDef.max}.` };
+    }
+  }
+  return { valid: true, message: "" };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. CONFIG TRAVERSAL HELPERS
+═══════════════════════════════════════════════════════════════ */
+function resolveLeafConfig() {
+  const path = CONFIG.paths[state.pathType];
+  if (!path.hasSubtypes) return path;
+  const sub = path.subtypes[state.subType];
+  if (!sub.hasSubtypes) return sub;
+  return sub.subtypes[state.subSubType];
+}
+
+function buildPathLabel() {
+  const parts = [];
+  if (state.pathType) parts.push(CONFIG.paths[state.pathType].label);
+  if (state.subType)  parts.push(CONFIG.paths[state.pathType].subtypes[state.subType].label);
+  if (state.subSubType) {
+    parts.push(
+      CONFIG.paths[state.pathType].subtypes[state.subType].subtypes[state.subSubType].label
+    );
+  }
+  return parts.join(" › ");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. FORMULA HANDLERS
+═══════════════════════════════════════════════════════════════ */
+function computePT_CV_NEW(v) {
+  const acv     = Number(v.acv);
+  const prob    = parseFloat(v.probability);
+  const evid    = parseFloat(v.evidence);
+  const raw     = acv;
+  const eav     = raw * prob * evid;
+
+  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
+  const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
+
+  return {
+    raw, eav,
+    usesRF: false,
+    multipliers: [
+      { label: "Realization Probability",  value: prob, note: probLabel },
+      { label: "Evidence Quality",         value: evid, note: evidLabel },
+    ],
+    formula: [
+      "EAV = ACV × Realization Probability × Evidence Quality",
+      `    = ${formatMoney(acv)} × ${prob} × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: [],
+  };
+}
+
+function computePT_CV_RET(v) {
+  const acv      = Number(v.acv);
+  const riskPct  = Number(v.revenueAtRisk);
+  const prob     = parseFloat(v.probability);
+  const evid     = parseFloat(v.evidence);
+  const raw      = acv * (riskPct / 100);
+  const eav      = raw * prob * evid;
+
+  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
+  const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
+
+  return {
+    raw, eav,
+    usesRF: false,
+    multipliers: [
+      { label: "% Revenue At Risk",        value: `${riskPct}%` },
+      { label: "Realization Probability",  value: prob, note: probLabel },
+      { label: "Evidence Quality",         value: evid, note: evidLabel },
+    ],
+    formula: [
+      "Raw = ACV × (% Revenue At Risk ÷ 100)",
+      `    = ${formatMoney(acv)} × (${riskPct} ÷ 100)`,
+      `    = ${formatMoney(raw)}`,
+      "",
+      "EAV = Raw × Realization Probability × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: [],
+  };
+}
+
+function computePT_OE(v) {
+  const hours   = Number(v.hoursSaved);
+  const members = Number(v.teamMembers);
+  const cost    = Number(v.hourlyCost);
+  const prob    = parseFloat(v.probability);
+  const evid    = parseFloat(v.evidence);
+  const RF      = CONFIG.constants.RF;
+  const raw     = hours * members * cost * 12 * RF;
+  const eav     = raw * prob * evid;
+
+  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
+  const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
+  const warns = [];
+  if (hours > CONFIG.constants.HOURS_WARN) {
+    warns.push("Hours saved exceeds typical monthly capacity. Double-check assumptions.");
+  }
+
+  return {
+    raw, eav,
+    usesRF: true,
+    multipliers: [
+      { label: "Hours Saved / Employee / Month", value: hours },
+      { label: "Team Members Impacted",          value: members },
+      { label: "Avg Loaded Hourly Cost",         value: formatMoney(cost) },
+      { label: "Months",                         value: 12 },
+      { label: "Realization Factor (RF)",        value: RF },
+      { label: "Realization Probability",        value: prob, note: probLabel },
+      { label: "Evidence Quality",               value: evid, note: evidLabel },
+    ],
+    formula: [
+      "Raw = Hours Saved × Team Members × Hourly Cost × 12 × RF",
+      `    = ${hours} × ${members} × ${formatMoney(cost)} × 12 × ${RF}`,
+      `    = ${formatMoney(raw)}`,
+      "",
+      "EAV = Raw × Realization Probability × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: warns,
+  };
+}
+
+function computeSALES(v) {
+  const acv       = Number(v.acv);
+  const stageProb = parseFloat(v.salesStage);
+  const evid      = parseFloat(v.evidence);
+  const raw       = acv;
+  const eav       = raw * stageProb * evid;
+
+  const stageLabel = getLabelFromOptions("salesStageOptions", v.salesStage);
+  const evidLabel  = getLabelFromOptions("evidenceOptions", v.evidence);
+
+  return {
+    raw, eav,
+    usesRF: false,
+    multipliers: [
+      { label: `Sales Stage (${stageLabel})`, value: stageProb },
+      { label: "Evidence Quality",            value: evid, note: evidLabel },
+    ],
+    formula: [
+      "EAV = ACV × Sales Stage Probability × Evidence Quality",
+      `    = ${formatMoney(acv)} × ${stageProb} (${stageLabel}) × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: [],
+  };
+}
+
+function computePM_UOE(v) {
+  const hours    = Number(v.hoursSaved);
+  const users    = Number(v.usersImpacted);
+  const rate     = Number(v.persona);
+  const prob     = parseFloat(v.probability);
+  const evid     = parseFloat(v.evidence);
+  const RF       = CONFIG.constants.RF;
+  const raw      = hours * users * rate * 12 * RF;
+  const eav      = raw * prob * evid;
+
+  const personaLabel = getLabelFromOptions("personaOptions", v.persona);
+  const probLabel    = getLabelFromOptions("probabilityOptions", v.probability);
+  const evidLabel    = getLabelFromOptions("evidenceOptions", v.evidence);
+  const warns = [];
+  if (hours > CONFIG.constants.HOURS_WARN) {
+    warns.push("Hours saved exceeds typical monthly capacity. Double-check assumptions.");
+  }
+
+  return {
+    raw, eav,
+    usesRF: true,
+    multipliers: [
+      { label: "Hours Saved / User / Month",  value: hours },
+      { label: "Users Impacted",              value: users },
+      { label: `Persona Rate (${personaLabel.split(" (")[0]})`, value: `$${rate}/hr` },
+      { label: "Months",                      value: 12 },
+      { label: "Realization Factor (RF)",     value: RF },
+      { label: "Realization Probability",     value: prob, note: probLabel },
+      { label: "Evidence Quality",            value: evid, note: evidLabel },
+    ],
+    formula: [
+      "Raw = Hours Saved × Users × Persona Rate × 12 × RF",
+      `    = ${hours} × ${users} × $${rate}/hr × 12 × ${RF}`,
+      `    = ${formatMoney(raw)}`,
+      "",
+      "EAV = Raw × Realization Probability × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: warns,
+  };
+}
+
+function computePM_MCI(v) {
+  const opps    = Number(v.opportunities);
+  const avgAcv  = Number(v.avgAcv);
+  const wr      = parseFloat(v.winRate);
+  const prob    = parseFloat(v.probability);
+  const evid    = parseFloat(v.evidence);
+  const raw     = opps * avgAcv;
+  const eav     = raw * wr * prob * evid;
+
+  const winLabel  = getLabelFromOptions("winRateOptions", v.winRate);
+  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
+  const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
+
+  return {
+    raw, eav,
+    usesRF: false,
+    multipliers: [
+      { label: "Opportunities Opened",            value: opps },
+      { label: "Avg Annual Contract Value",       value: formatMoney(avgAcv) },
+      { label: `Win Rate (${winLabel})`,          value: wr },
+      { label: "Realization Probability",         value: prob, note: probLabel },
+      { label: "Evidence Quality",                value: evid, note: evidLabel },
+    ],
+    formula: [
+      "Raw = Opportunities × Avg ACV",
+      `    = ${opps} × ${formatMoney(avgAcv)}`,
+      `    = ${formatMoney(raw)}`,
+      "",
+      "EAV = Raw × Win Rate × Realization Probability × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${wr} × ${prob} × ${evid}`,
+      `    = ${formatMoney(eav)}`,
+    ].join("\n"),
+    warnings: [],
+  };
+}
+
+const FORMULA_HANDLERS = {
+  PT_CV_NEW: computePT_CV_NEW,
+  PT_CV_RET: computePT_CV_RET,
+  PT_OE:     computePT_OE,
+  SALES:     computeSALES,
+  PM_UOE:    computePM_UOE,
+  PM_MCI:    computePM_MCI,
+};
+
+function computeRawAndEAV() {
+  const leaf = resolveLeafConfig();
+  return FORMULA_HANDLERS[leaf.formulaKey](state.values);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. COPY SUMMARY BUILDER
+═══════════════════════════════════════════════════════════════ */
+function buildBreakdown(result) {
+  const { raw, eav, multipliers, formula, warnings, usesRF } = result;
+  const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const leaf = resolveLeafConfig();
+
+  const lines = [
+    "======================================",
+    "  ROADMAP EAV CALCULATOR — SUMMARY",
+    "======================================",
+    `Date:         ${now}`,
+    `Calculator:   ${buildPathLabel()}`,
+    "",
+    "--- INPUTS ---",
+  ];
+
+  for (const f of leaf.fields) {
+    if (f.id === "notes") continue;
+    const raw = state.values[f.id];
+    if (raw === undefined || raw === "" || raw === null) continue;
+    let display = raw;
+    if (f.type === "select") {
+      display = getLabelFromOptions(f.options, raw);
+    } else if (f.prefix === "$") {
+      display = formatMoney(Number(raw));
+    } else if (f.suffix === "%") {
+      display = `${raw}%`;
+    }
+    lines.push(`  ${f.label}: ${display}`);
+  }
+
+  if (usesRF) {
+    lines.push(`  Realization Factor (RF): ${CONFIG.constants.RF}`);
+  }
+
+  lines.push("", "--- MULTIPLIERS ---");
+  for (const m of multipliers) {
+    lines.push(`  ${m.label}: ${m.value}`);
+  }
+
+  lines.push("", "--- FORMULA ---");
+  for (const l of formula.split("\n")) lines.push("  " + l);
+
+  lines.push("", "--- RESULT ---");
+  lines.push(`  Raw Annual Value:            ${formatMoney(raw)}`);
+  lines.push(`  Expected Annual Value (EAV): ${formatMoney(eav)}`);
+
+  if (eav > CONFIG.constants.EAV_THRESHOLD) {
+    lines.push("", "  *** Impact exceeds $25M annually. Validate assumptions carefully. ***");
+  }
+  if (warnings.length > 0) {
+    lines.push("", "--- WARNINGS ---");
+    for (const w of warnings) lines.push(`  ! ${w}`);
+  }
+  const notes = state.values.notes;
+  if (notes && String(notes).trim()) {
+    lines.push("", "--- NOTES ---");
+    lines.push("  " + String(notes).trim());
+  }
+  lines.push("", "======================================");
+  return lines.join("\n");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. NAVIGATION / STATE MACHINE
+═══════════════════════════════════════════════════════════════ */
+function selectPath(pathId) {
+  state.pathType = pathId;
+  const path = CONFIG.paths[pathId];
+  if (!path.hasSubtypes) {
+    state.step = 3;
+  } else {
+    state.step = 1;
+  }
+  render();
+}
+
+function selectSubtype(subId) {
+  state.subType = subId;
+  const sub = CONFIG.paths[state.pathType].subtypes[subId];
+  if (sub.hasSubtypes) {
+    state.step = 2;
+  } else {
+    state.step = 3;
+  }
+  render();
+}
+
+function selectSubSubtype(subSubId) {
+  state.subSubType = subSubId;
+  state.step = 3;
+  render();
+}
+
+function back() {
+  const s = state.step;
+  if (s === 4) {
+    state.step = 3;
+  } else if (s === 3) {
+    state.values = {};
+    if (!CONFIG.paths[state.pathType].hasSubtypes) {
+      // Sales: jumped from 0 to 3
+      state.step = 0;
+      state.pathType = null;
+    } else if (state.subSubType !== null) {
+      state.step = 2;
+      state.subSubType = null;
+    } else if (state.subType !== null) {
+      state.step = 1;
+      state.subType = null;
+    } else {
+      state.step = 0;
+      state.pathType = null;
+    }
+  } else if (s === 2) {
+    state.step = 1;
+    state.subSubType = null;
+  } else if (s === 1) {
+    state.step = 0;
+    state.pathType = null;
+    state.subType = null;
+  }
+  render();
+}
+
+function startOver() {
+  state = { step: 0, pathType: null, subType: null, subSubType: null, values: {}, lastResult: null };
+  render();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. FIELD RENDERING HELPER
+═══════════════════════════════════════════════════════════════ */
+function renderField(f, savedVal) {
+  const saved = savedVal !== undefined ? savedVal : "";
+  const star  = f.required ? '<span class="required-star">*</span>' : "";
+  let input = "";
+
+  if (f.type === "number") {
+    const minAttr = f.min !== undefined ? `min="${f.min}"` : "";
+    const maxAttr = f.max !== undefined ? `max="${f.max}"` : "";
+    input = `<input type="number" id="f-${f.id}" name="${f.id}" ${minAttr} ${maxAttr}
+      step="any" value="${escapeHtml(saved)}" ${f.required ? 'required' : ''} autocomplete="off">`;
+  } else if (f.type === "select") {
+    const opts = CONFIG[f.options] || [];
+    const optHtml = opts.map(o =>
+      `<option value="${escapeHtml(o.value)}" ${String(o.value) === String(saved) ? "selected" : ""}>${escapeHtml(o.label)}</option>`
+    ).join("");
+    input = `<select id="f-${f.id}" name="${f.id}" ${f.required ? 'required' : ''}>
+      <option value="">— Select —</option>
+      ${optHtml}
+    </select>`;
+  } else if (f.type === "textarea") {
+    input = `<textarea id="f-${f.id}" name="${f.id}" rows="3">${escapeHtml(saved)}</textarea>`;
+  }
+
+  const hint = f.hint ? `<span class="field-hint">${escapeHtml(f.hint)}</span>` : "";
+  const warnDiv = f.hoursWarn
+    ? `<div class="inline-warning" id="warn-${f.id}">Hours saved exceeds typical monthly capacity (40 hrs). Double-check assumptions.</div>`
+    : "";
+
+  return `
+    <div class="field-group" id="fg-${f.id}">
+      <label class="field-label" for="f-${f.id}">${escapeHtml(f.label)}${star}</label>
+      ${hint}
+      ${input}
+      ${warnDiv}
+      <span class="field-error" id="err-${f.id}"></span>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   9. RENDERERS
+═══════════════════════════════════════════════════════════════ */
+function hideAll() {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("visible"));
+}
+
+function show(id) {
+  document.getElementById(id).classList.add("visible");
+}
+
+function updateBreadcrumb() {
+  const crumbs = [{ label: "Home", step: 0 }];
+  if (state.pathType) {
+    crumbs.push({ label: CONFIG.paths[state.pathType].label, step: 1 });
+  }
+  if (state.subType) {
+    crumbs.push({ label: CONFIG.paths[state.pathType].subtypes[state.subType].label, step: 2 });
+  }
+  if (state.subSubType) {
+    crumbs.push({
+      label: CONFIG.paths[state.pathType].subtypes[state.subType].subtypes[state.subSubType].label,
+      step: 3,
+    });
+  }
+  if (state.step === 4) crumbs.push({ label: "Result", step: 4 });
+
+  const el = document.getElementById("breadcrumb");
+  el.innerHTML = crumbs.map((c, i) => {
+    if (i === crumbs.length - 1) {
+      return `<span class="crumb crumb-active">${escapeHtml(c.label)}</span>`;
+    }
+    return `<span class="crumb">${escapeHtml(c.label)}</span><span class="crumb-sep">›</span>`;
+  }).join("");
+}
+
+function renderHome() {
+  const grid = document.getElementById("home-grid");
+  grid.innerHTML = Object.entries(CONFIG.paths).map(([id, p]) =>
+    `<button class="choice-card" data-path="${id}">
+      <span class="card-icon">${p.icon}</span>
+      <span class="card-body">
+        <span class="card-label">${escapeHtml(p.label)}</span>
+        <span class="card-desc">${escapeHtml(p.desc)}</span>
+      </span>
+    </button>`
+  ).join("");
+
+  grid.querySelectorAll(".choice-card").forEach(btn => {
+    btn.addEventListener("click", () => selectPath(btn.dataset.path));
+  });
+
+  show("sec-home");
+}
+
+function renderSubtype() {
+  const path = CONFIG.paths[state.pathType];
+  document.getElementById("subtype-title").textContent = path.label;
+
+  const grid = document.getElementById("subtype-grid");
+  grid.innerHTML = Object.entries(path.subtypes).map(([id, sub]) =>
+    `<button class="choice-card" data-sub="${id}">
+      <span class="card-icon">${sub.icon}</span>
+      <span class="card-body">
+        <span class="card-label">${escapeHtml(sub.label)}</span>
+        <span class="card-desc">${escapeHtml(sub.desc)}</span>
+      </span>
+    </button>`
+  ).join("");
+
+  grid.querySelectorAll(".choice-card").forEach(btn => {
+    btn.addEventListener("click", () => selectSubtype(btn.dataset.sub));
+  });
+
+  show("sec-subtype");
+}
+
+function renderSubSubtype() {
+  const sub = CONFIG.paths[state.pathType].subtypes[state.subType];
+  document.getElementById("subsubtype-title").textContent = sub.label;
+
+  const grid = document.getElementById("subsubtype-grid");
+  grid.innerHTML = Object.entries(sub.subtypes).map(([id, ss]) =>
+    `<button class="choice-card" data-subsub="${id}">
+      <span class="card-icon">${ss.icon}</span>
+      <span class="card-body">
+        <span class="card-label">${escapeHtml(ss.label)}</span>
+        <span class="card-desc">${escapeHtml(ss.desc)}</span>
+      </span>
+    </button>`
+  ).join("");
+
+  grid.querySelectorAll(".choice-card").forEach(btn => {
+    btn.addEventListener("click", () => selectSubSubtype(btn.dataset.subsub));
+  });
+
+  show("sec-subsubtype");
+}
+
+function renderForm() {
+  const leaf = resolveLeafConfig();
+  document.getElementById("form-title").textContent = buildPathLabel();
+
+  const fieldsEl = document.getElementById("form-fields");
+  fieldsEl.innerHTML = leaf.fields.map(f => renderField(f, state.values[f.id])).join("");
+
+  // Hours-warn listeners
+  leaf.fields.filter(f => f.hoursWarn).forEach(f => {
+    const input = document.getElementById(`f-${f.id}`);
+    const warn  = document.getElementById(`warn-${f.id}`);
+    if (input && warn) {
+      input.addEventListener("input", () => {
+        warn.classList.toggle("show", Number(input.value) > CONFIG.constants.HOURS_WARN);
+      });
+      // Trigger on load if value already populated
+      if (Number(input.value) > CONFIG.constants.HOURS_WARN) warn.classList.add("show");
+    }
+  });
+
+  show("sec-form");
+}
+
+function submitForm(e) {
+  e.preventDefault();
+  const leaf   = resolveLeafConfig();
+  const vals   = {};
+  let   hasErr = false;
+
+  for (const f of leaf.fields) {
+    const el  = document.getElementById(`f-${f.id}`);
+    const val = el ? el.value : "";
+    vals[f.id] = val;
+
+    const errEl = document.getElementById(`err-${f.id}`);
+    if (errEl) errEl.textContent = "";
+
+    const check = validateField(f, val);
+    if (!check.valid) {
+      if (errEl) errEl.textContent = check.message;
+      hasErr = true;
+    }
+  }
+
+  if (hasErr) return;
+
+  state.values = vals;
+  state.step   = 4;
+  render();
+}
+
+function renderResult() {
+  const result = computeRawAndEAV();
+  state.lastResult = result;
+  const { raw, eav, multipliers, formula, warnings, usesRF } = result;
+
+  let html = "";
+
+  // Compute warnings
+  for (const w of warnings) {
+    html += `<div class="banner banner-warning">&#9888; ${escapeHtml(w)}</div>`;
+  }
+  if (eav > CONFIG.constants.EAV_THRESHOLD) {
+    html += `<div class="banner banner-danger">&#9888; Impact exceeds $25M annually. Validate assumptions carefully.</div>`;
+  }
+
+  // Path label
+  html += `<p class="section-label" style="margin-bottom:0.75rem;">${escapeHtml(buildPathLabel())}</p>`;
+
+  // Summary card
+  html += `<div class="result-summary">
+    <div class="result-row">
+      <span class="result-label">Raw Annual Value</span>
+      <span class="result-value">${formatMoney(raw)}</span>
+    </div>`;
+  if (usesRF) {
+    html += `<div class="result-row">
+      <span class="result-label">Realization Factor (RF)</span>
+      <span class="result-value">${CONFIG.constants.RF}</span>
+    </div>`;
+  }
+  html += `<div class="result-row result-eav-row">
+      <span class="result-label">Expected Annual Value (EAV)</span>
+      <span class="result-value">${formatMoney(eav)}</span>
+    </div>
+  </div>`;
+
+  // Multipliers table
+  html += `<p class="section-label">Multipliers Applied</p>
+  <table class="multiplier-table">
+    <thead><tr><th>Factor</th><th style="text-align:right">Value</th></tr></thead>
+    <tbody>`;
+  for (const m of multipliers) {
+    html += `<tr>
+      <td>${escapeHtml(m.label)}</td>
+      <td class="mult-val">${escapeHtml(String(m.value))}</td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+
+  // Formula
+  html += `<p class="section-label">Formula Breakdown</p>
+  <div class="formula-block">${escapeHtml(formula)}</div>`;
+
+  // Notes
+  const notes = state.values.notes;
+  if (notes && String(notes).trim()) {
+    html += `<p class="section-label">Notes</p>
+    <div class="result-notes">${escapeHtml(String(notes).trim())}</div>`;
+  }
+
+  document.getElementById("result-content").innerHTML = html;
+
+  // Wire buttons
+  document.getElementById("btn-copy").onclick = () => {
+    const text = buildBreakdown(result);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showToast("Summary copied to clipboard!"))
+        .catch(() => showToast("Copy failed — please copy manually."));
+    } else {
+      showToast("Clipboard not available in this context.");
+    }
+  };
+  document.getElementById("btn-back-result").onclick  = back;
+  document.getElementById("btn-start-over").onclick   = startOver;
+
+  show("sec-result");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   10. MAIN RENDER DISPATCHER
+═══════════════════════════════════════════════════════════════ */
+function render() {
+  hideAll();
+  updateBreadcrumb();
+  switch (state.step) {
+    case 0: renderHome();       break;
+    case 1: renderSubtype();    break;
+    case 2: renderSubSubtype(); break;
+    case 3: renderForm();       break;
+    case 4: renderResult();     break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   11. WIRE STATIC BUTTONS AND INIT
+═══════════════════════════════════════════════════════════════ */
+document.getElementById("subtype-back").addEventListener("click", back);
+document.getElementById("subsubtype-back").addEventListener("click", back);
+document.getElementById("form-back").addEventListener("click", back);
+document.getElementById("calc-form").addEventListener("submit", submitForm);
+
+// Kick off
+render();
+</script>
+</body>
+</html>
