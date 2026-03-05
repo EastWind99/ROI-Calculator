@@ -376,6 +376,67 @@
       .result-eav-row .result-value { font-size: 1.25rem; }
       .btn { width: 100%; justify-content: center; }
     }
+
+    /* ── Intake type card grid ──────────────────────────────── */
+    .intake-type-grid { margin-bottom: 1.5rem; }
+    .choice-card.selected {
+      border: 2px solid var(--primary);
+      background: #eff6ff;
+    }
+
+    /* ── Preview screen ─────────────────────────────────────── */
+    .preview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .preview-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .preview-value {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .preview-value:last-child { margin-bottom: 0; }
+    .preview-eav {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--success);
+    }
+    .preview-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .preview-section-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 1rem 0 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .preview-prose {
+      background: var(--page-bg);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+    @media (max-width: 480px) {
+      .preview-meta-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -387,6 +448,69 @@
   </header>
 
   <nav id="breadcrumb" aria-label="breadcrumb"></nav>
+
+  <!-- Intake Screen (pre-step) -->
+  <div id="sec-intake" class="section">
+    <p class="section-title">New Feature Request</p>
+    <p class="section-sub">Select a request type and complete the intake form to continue.</p>
+
+    <div class="choice-grid intake-type-grid" id="intake-type-grid">
+      <button class="choice-card" data-rtype="project-team">
+        <span class="card-icon">🏗️</span>
+        <span class="card-body">
+          <span class="card-label">Project Team Feature Request</span>
+          <span class="card-desc">Internal team requests tied to contract value or efficiency</span>
+        </span>
+      </button>
+      <button class="choice-card" data-rtype="sales">
+        <span class="card-icon">💼</span>
+        <span class="card-body">
+          <span class="card-label">Sales Feature Request</span>
+          <span class="card-desc">Pipeline and revenue opportunities driven by sales needs</span>
+        </span>
+      </button>
+      <button class="choice-card" data-rtype="product-market">
+        <span class="card-icon">🌐</span>
+        <span class="card-body">
+          <span class="card-label">Product / Market Feature Request</span>
+          <span class="card-desc">User efficiency and market competitiveness improvements</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="form-card" id="intake-form-card">
+      <form id="intake-form" novalidate>
+        <div class="field-group">
+          <label class="field-label" for="if-featureTitle">Feature Title <span class="required-star">*</span></label>
+          <input type="text" id="if-featureTitle" name="featureTitle" autocomplete="off" required>
+          <span class="field-error" id="err-featureTitle"></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="if-problemStatement">Problem Statement <span class="required-star">*</span></label>
+          <textarea id="if-problemStatement" name="problemStatement" rows="3" required></textarea>
+          <span class="field-error" id="err-problemStatement"></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="if-proposedFeature">Proposed Feature <span class="required-star">*</span></label>
+          <textarea id="if-proposedFeature" name="proposedFeature" rows="3" required></textarea>
+          <span class="field-error" id="err-proposedFeature"></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="if-urgency">Urgency <span class="required-star">*</span></label>
+          <select id="if-urgency" name="urgency" required>
+            <option value="">— Select —</option>
+          </select>
+          <span class="field-error" id="err-urgency"></span>
+        </div>
+        <div class="field-group" id="err-requestType-group" style="display:none">
+          <span class="field-error" id="err-requestType">Please select a request type above.</span>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Continue to Calculator &#8594;</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Step 0: Home -->
   <div id="sec-home" class="section">
@@ -433,9 +557,20 @@
   <div id="sec-result" class="section">
     <div id="result-content"></div>
     <div class="btn-row">
-      <button class="btn btn-secondary" id="btn-copy">&#128203; Copy Summary</button>
+      <button class="btn btn-primary" id="btn-review">&#128196; Review Submission</button>
       <button class="btn btn-outline" id="btn-back-result">&#8592; Back</button>
       <button class="btn btn-outline" id="btn-start-over">&#8635; Start Over</button>
+    </div>
+  </div>
+
+  <!-- Preview Screen (post-result) -->
+  <div id="sec-preview" class="section">
+    <p class="section-title">Submission Preview — Jira integration coming soon</p>
+    <p class="section-sub">Review the details below before sharing with your team.</p>
+    <div id="preview-content"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-preview-copy">&#128203; Copy Summary</button>
+      <button class="btn btn-outline" id="btn-preview-start-over">&#8635; Start Over</button>
     </div>
   </div>
 
@@ -489,6 +624,14 @@ const CONFIG = {
     { label: "Project Manager ($40/hr)",      value: "40",  display: "$40/hr"  },
     { label: "Upper Management ($100/hr)",    value: "100", display: "$100/hr" },
     { label: "Executive Leadership ($200/hr)",value: "200", display: "$200/hr" },
+  ],
+
+  urgencyOptions: [
+    { value: "5", label: "5 – Active client escalation; churn risk identified; blocking delivery of contracted work" },
+    { value: "4", label: "4 – Frequently raised in client conversations; impacts multiple users daily; documented user feedback" },
+    { value: "3", label: "3 – Known pain point; raised occasionally; workarounds exist but create friction" },
+    { value: "2", label: "2 – Reported by a small number of users; infrequent impact" },
+    { value: "1", label: "1 – No direct user complaint; internal initiative only" },
   ],
 
   paths: {
@@ -614,6 +757,11 @@ let state = {
   subSubType: null,
   values: {},
   lastResult: null,
+  // Intake extension
+  intakeDone: false,
+  requestType: null,  // 'project-team' | 'sales' | 'product-market'
+  intakeValues: {},   // featureTitle, problemStatement, proposedFeature, urgency
+  onPreview: false,
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -980,6 +1128,211 @@ function buildBreakdown(result) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   6b. INTAKE / PREVIEW HELPERS
+═══════════════════════════════════════════════════════════════ */
+function getROIScore(eav) {
+  if (eav > 250000)  return 5;
+  if (eav >= 50000)  return 4;
+  if (eav >= 25000)  return 3;
+  if (eav >= 1)      return 2;
+  return 1;
+}
+
+function getROIScoreLabel(score) {
+  const labels = {
+    5: "EAV > $250,000",
+    4: "EAV $50,000–$250,000",
+    3: "EAV $25,000–$50,000",
+    2: "EAV $1–$24,999",
+    1: "EAV = $0",
+  };
+  return labels[score] || "";
+}
+
+function getUrgencyLabel(val) {
+  const found = CONFIG.urgencyOptions.find(o => String(o.value) === String(val));
+  return found ? found.label : String(val);
+}
+
+function getTargetProject(requestType) {
+  return requestType === "project-team" ? "US" : "JFR";
+}
+
+const REQUEST_TYPE_LABELS = {
+  "project-team":   "Project Team Feature Request",
+  "sales":          "Sales Feature Request",
+  "product-market": "Product / Market Feature Request",
+};
+
+function buildPreviewText() {
+  const iv  = state.intakeValues;
+  const res = state.lastResult;
+  const roi = getROIScore(res.eav);
+  const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const lines = [
+    "======================================",
+    "  SUBMISSION PREVIEW",
+    "  Jira integration coming soon",
+    "======================================",
+    `Date:              ${now}`,
+    `Feature Title:     ${iv.featureTitle}`,
+    `Request Type:      ${REQUEST_TYPE_LABELS[state.requestType] || state.requestType}`,
+    `Target Project:    ${getTargetProject(state.requestType)}`,
+    `Urgency:           ${getUrgencyLabel(iv.urgency)}`,
+    `EAV:               ${formatMoney(res.eav)}`,
+    `Estimated ROI:     ${roi} \u2014 ${getROIScoreLabel(roi)}`,
+    "",
+    "--- PROBLEM STATEMENT ---",
+    iv.problemStatement,
+    "",
+    "--- PROPOSED FEATURE ---",
+    iv.proposedFeature,
+    "",
+    "--- EAV FORMULA BREAKDOWN ---",
+    `Calculator: ${buildPathLabel()}`,
+  ];
+  for (const l of res.formula.split("\n")) lines.push("  " + l);
+  lines.push("", "======================================");
+  return lines.join("\n");
+}
+
+function renderIntake() {
+  // Populate urgency select from CONFIG (once)
+  const sel = document.getElementById("if-urgency");
+  if (sel.options.length <= 1) {
+    CONFIG.urgencyOptions.forEach(o => {
+      const opt = document.createElement("option");
+      opt.value = o.value;
+      opt.textContent = o.label;
+      sel.appendChild(opt);
+    });
+  }
+
+  // Restore saved values
+  const iv = state.intakeValues;
+  if (iv.featureTitle)     document.getElementById("if-featureTitle").value     = iv.featureTitle;
+  if (iv.problemStatement) document.getElementById("if-problemStatement").value = iv.problemStatement;
+  if (iv.proposedFeature)  document.getElementById("if-proposedFeature").value  = iv.proposedFeature;
+  if (iv.urgency)          document.getElementById("if-urgency").value           = iv.urgency;
+
+  // Highlight selected request type card
+  document.querySelectorAll("#intake-type-grid .choice-card").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.rtype === state.requestType);
+  });
+
+  show("sec-intake");
+}
+
+function submitIntake(e) {
+  e.preventDefault();
+  let hasError = false;
+
+  // Validate request type
+  const rtErr = document.getElementById("err-requestType");
+  const rtGrp = document.getElementById("err-requestType-group");
+  if (!state.requestType) {
+    rtErr.textContent = "Please select a request type above.";
+    rtGrp.style.display = "block";
+    hasError = true;
+  } else {
+    rtErr.textContent = "";
+    rtGrp.style.display = "none";
+  }
+
+  // Validate text fields
+  const textFields = ["featureTitle", "problemStatement", "proposedFeature"];
+  for (const id of textFields) {
+    const el  = document.getElementById("if-" + id);
+    const err = document.getElementById("err-" + id);
+    if (!el.value.trim()) {
+      err.textContent = "This field is required.";
+      hasError = true;
+    } else {
+      err.textContent = "";
+    }
+  }
+
+  // Validate urgency
+  const urgencyEl  = document.getElementById("if-urgency");
+  const urgencyErr = document.getElementById("err-urgency");
+  if (!urgencyEl.value) {
+    urgencyErr.textContent = "This field is required.";
+    hasError = true;
+  } else {
+    urgencyErr.textContent = "";
+  }
+
+  if (hasError) return;
+
+  state.intakeValues = {
+    featureTitle:     document.getElementById("if-featureTitle").value.trim(),
+    problemStatement: document.getElementById("if-problemStatement").value.trim(),
+    proposedFeature:  document.getElementById("if-proposedFeature").value.trim(),
+    urgency:          document.getElementById("if-urgency").value,
+  };
+  state.intakeDone = true;
+  selectPath(state.requestType);
+}
+
+function renderPreview() {
+  const iv  = state.intakeValues;
+  const res = state.lastResult;
+  const roi = getROIScore(res.eav);
+
+  document.getElementById("preview-content").innerHTML = `
+    <div class="preview-card">
+      <div class="preview-meta-grid">
+        <div>
+          <div class="preview-label">Feature Title</div>
+          <div class="preview-value">${escapeHtml(iv.featureTitle)}</div>
+        </div>
+        <div>
+          <div class="preview-label">Request Type</div>
+          <div class="preview-value">${escapeHtml(REQUEST_TYPE_LABELS[state.requestType] || state.requestType)}</div>
+        </div>
+        <div>
+          <div class="preview-label">Target Project</div>
+          <div class="preview-value">${escapeHtml(getTargetProject(state.requestType))}</div>
+        </div>
+        <div>
+          <div class="preview-label">Urgency</div>
+          <div class="preview-value">${escapeHtml(getUrgencyLabel(iv.urgency))}</div>
+        </div>
+        <div>
+          <div class="preview-label">Expected Annual Value (EAV)</div>
+          <div class="preview-value preview-eav">${escapeHtml(formatMoney(res.eav))}</div>
+        </div>
+        <div>
+          <div class="preview-label">Estimated ROI Score</div>
+          <div class="preview-value"><strong>${roi} / 5</strong> &mdash; ${escapeHtml(getROIScoreLabel(roi))}</div>
+        </div>
+      </div>
+      <div class="preview-section-label">Problem Statement</div>
+      <div class="preview-prose">${escapeHtml(iv.problemStatement)}</div>
+      <div class="preview-section-label">Proposed Feature</div>
+      <div class="preview-prose">${escapeHtml(iv.proposedFeature)}</div>
+      <div class="preview-section-label">EAV Formula Breakdown</div>
+      <div class="formula-block">${escapeHtml(res.formula)}</div>
+    </div>
+  `;
+
+  document.getElementById("btn-preview-copy").onclick = () => {
+    const text = buildPreviewText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showToast("Summary copied to clipboard!"))
+        .catch(() => showToast("Copy failed — please copy manually."));
+    } else {
+      showToast("Clipboard not available in this context.");
+    }
+  };
+  document.getElementById("btn-preview-start-over").onclick = startOver;
+
+  show("sec-preview");
+}
+
+/* ═══════════════════════════════════════════════════════════════
    7. NAVIGATION / STATE MACHINE
 ═══════════════════════════════════════════════════════════════ */
 function selectPath(pathId) {
@@ -1011,15 +1364,22 @@ function selectSubSubtype(subSubId) {
 }
 
 function back() {
+  // From preview, go back to result
+  if (state.onPreview) {
+    state.onPreview = false;
+    render();
+    return;
+  }
   const s = state.step;
   if (s === 4) {
     state.step = 3;
   } else if (s === 3) {
     state.values = {};
     if (!CONFIG.paths[state.pathType].hasSubtypes) {
-      // Sales: jumped from 0 to 3
+      // Sales: jumped from intake to 3 — return to intake
       state.step = 0;
       state.pathType = null;
+      state.intakeDone = false;
     } else if (state.subSubType !== null) {
       state.step = 2;
       state.subSubType = null;
@@ -1034,15 +1394,20 @@ function back() {
     state.step = 1;
     state.subSubType = null;
   } else if (s === 1) {
+    // Return to intake instead of home grid
     state.step = 0;
     state.pathType = null;
     state.subType = null;
+    state.intakeDone = false;
   }
   render();
 }
 
 function startOver() {
-  state = { step: 0, pathType: null, subType: null, subSubType: null, values: {}, lastResult: null };
+  state = {
+    step: 0, pathType: null, subType: null, subSubType: null, values: {}, lastResult: null,
+    intakeDone: false, requestType: null, intakeValues: {}, onPreview: false,
+  };
   render();
 }
 
@@ -1099,7 +1464,10 @@ function show(id) {
 }
 
 function updateBreadcrumb() {
-  const crumbs = [{ label: "Home", step: 0 }];
+  const rootLabel = (state.intakeDone && state.intakeValues.featureTitle)
+    ? state.intakeValues.featureTitle
+    : "New Request";
+  const crumbs = [{ label: rootLabel, step: 0 }];
   if (state.pathType) {
     crumbs.push({ label: CONFIG.paths[state.pathType].label, step: 1 });
   }
@@ -1113,6 +1481,7 @@ function updateBreadcrumb() {
     });
   }
   if (state.step === 4) crumbs.push({ label: "Result", step: 4 });
+  if (state.onPreview)  crumbs.push({ label: "Submission Preview", step: 5 });
 
   const el = document.getElementById("breadcrumb");
   el.innerHTML = crumbs.map((c, i) => {
@@ -1300,15 +1669,9 @@ function renderResult() {
   document.getElementById("result-content").innerHTML = html;
 
   // Wire buttons
-  document.getElementById("btn-copy").onclick = () => {
-    const text = buildBreakdown(result);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(() => showToast("Summary copied to clipboard!"))
-        .catch(() => showToast("Copy failed — please copy manually."));
-    } else {
-      showToast("Clipboard not available in this context.");
-    }
+  document.getElementById("btn-review").onclick = () => {
+    state.onPreview = true;
+    render();
   };
   document.getElementById("btn-back-result").onclick  = back;
   document.getElementById("btn-start-over").onclick   = startOver;
@@ -1322,6 +1685,8 @@ function renderResult() {
 function render() {
   hideAll();
   updateBreadcrumb();
+  if (!state.intakeDone) { renderIntake(); return; }
+  if (state.onPreview)   { renderPreview(); return; }
   switch (state.step) {
     case 0: renderHome();       break;
     case 1: renderSubtype();    break;
@@ -1338,6 +1703,18 @@ document.getElementById("subtype-back").addEventListener("click", back);
 document.getElementById("subsubtype-back").addEventListener("click", back);
 document.getElementById("form-back").addEventListener("click", back);
 document.getElementById("calc-form").addEventListener("submit", submitForm);
+
+// Intake wiring
+document.querySelectorAll("#intake-type-grid .choice-card").forEach(btn => {
+  btn.addEventListener("click", () => {
+    state.requestType = btn.dataset.rtype;
+    document.querySelectorAll("#intake-type-grid .choice-card").forEach(b =>
+      b.classList.toggle("selected", b.dataset.rtype === state.requestType)
+    );
+    document.getElementById("err-requestType-group").style.display = "none";
+  });
+});
+document.getElementById("intake-form").addEventListener("submit", submitIntake);
 
 // Kick off
 render();
