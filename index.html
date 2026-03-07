@@ -437,6 +437,137 @@
     @media (max-width: 480px) {
       .preview-meta-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Modal backdrop & card ──────────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      padding: 2rem;
+      max-width: 480px;
+      width: 90%;
+    }
+    .modal-card h2 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 0.9rem;
+    }
+    .modal-card p {
+      font-size: 0.93rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+    .modal-btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.4rem;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 0.55rem 0.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.93rem;
+      color: var(--text);
+      background: #fff;
+      margin-bottom: 0.4rem;
+      font-family: inherit;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .modal-hint {
+      font-size: 0.77rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    /* ── Jira redirect full-screen overlay ──────────────────── */
+    .jira-redirect-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--page-bg);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+    .jira-redirect-backdrop h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .jira-redirect-backdrop .muted-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      max-width: 360px;
+      text-align: center;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Inline confirmation messages ───────────────────────── */
+    .inline-confirm {
+      display: inline-block;
+      font-size: 0.82rem;
+      color: var(--success);
+      margin-left: 0.5rem;
+      align-self: center;
+    }
+
+    /* ── Intake form progressive disclosure ─────────────────── */
+    #intake-form-card {
+      display: none;
+    }
+    #intake-form-card.form-visible {
+      display: block;
+      animation: slideDown 0.22s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Selected card checkmark ────────────────────────────── */
+    .choice-card {
+      position: relative;
+    }
+    .choice-card.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
   </style>
 </head>
 <body>
@@ -479,6 +610,11 @@
 
     <div class="form-card" id="intake-form-card">
       <form id="intake-form" novalidate>
+        <div class="field-group">
+          <label class="field-label" for="if-submitterName">Submitter Name <span class="required-star">*</span></label>
+          <input type="text" id="if-submitterName" name="submitterName" autocomplete="off" required>
+          <span class="field-error" id="err-submitterName"></span>
+        </div>
         <div class="field-group">
           <label class="field-label" for="if-featureTitle">Feature Title <span class="required-star">*</span></label>
           <input type="text" id="if-featureTitle" name="featureTitle" autocomplete="off" required>
@@ -567,15 +703,74 @@
     <p class="section-title">Submission Preview — Jira integration coming soon</p>
     <p class="section-sub">Review the details below before sharing with your team.</p>
     <div id="preview-content"></div>
-    <div class="btn-row">
+    <div class="btn-row" style="align-items:center; flex-wrap:wrap;">
       <button class="btn btn-secondary" id="btn-preview-copy">&#128203; Copy Summary</button>
+      <button class="btn btn-outline" id="btn-send-jira">&#128196; Send to JFR (Jira)</button>
+      <button class="btn btn-outline" id="btn-email-pmo">&#9993; Email to PMO</button>
       <button class="btn btn-outline" id="btn-preview-start-over">&#8635; Start Over</button>
+      <span class="inline-confirm" id="jira-inline-confirm" style="display:none"></span>
+      <span class="inline-confirm" id="email-inline-confirm" style="display:none"></span>
     </div>
   </div>
 
 </div><!-- /.app -->
 
 <div id="toast" class="toast"></div>
+
+<!-- Welcome modal (shown on page load) -->
+<div id="modal-welcome" class="modal-backdrop">
+  <div class="modal-card">
+    <h2>Before You Begin</h2>
+    <p>You're about to submit a roadmap intake request, which requires you to provide an Estimated Annual Value for the feature you are requesting. If you are just looking to suggest a new idea for over.vu without urgency, please submit a ticket through the over.vu Help Center.</p>
+    <div class="modal-btn-row">
+      <button class="btn btn-primary" id="btn-welcome-proceed">Ok, Proceed to Roadmap Intake</button>
+    </div>
+  </div>
+</div>
+
+<!-- Jira modal -->
+<div id="modal-jira" class="modal-backdrop" style="display:none">
+  <div class="modal-card">
+    <div id="jira-modal-ask">
+      <h2>Send to Jira</h2>
+      <p>Do you already have an existing JFR ticket for this feature?</p>
+      <div class="modal-btn-row">
+        <button class="btn btn-primary" id="btn-jira-yes">Yes, I have a ticket</button>
+        <button class="btn btn-outline" id="btn-jira-no">No, create a new one</button>
+      </div>
+    </div>
+    <div id="jira-modal-ticket" style="display:none">
+      <h2>Send to Jira</h2>
+      <p>Enter your existing JFR ticket ID:</p>
+      <input class="modal-input" type="text" id="jira-ticket-input" placeholder="e.g. JFR-142" autocomplete="off">
+      <span class="modal-hint">After Jira integration is live, this will attach your submission as a comment to the existing ticket.</span>
+      <div class="modal-btn-row">
+        <button class="btn btn-primary" id="btn-jira-confirm">Confirm</button>
+        <button class="btn btn-outline" id="btn-jira-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Jira redirect full-screen overlay -->
+<div id="jira-redirect-overlay" class="jira-redirect-backdrop" style="display:none">
+  <h2>Redirecting to Jira...</h2>
+  <div class="spinner"></div>
+  <p class="muted-note">Jira integration coming soon — this will automatically create a new JFR ticket with all fields populated.</p>
+  <button class="btn btn-outline" id="btn-jira-redirect-back">Go Back</button>
+</div>
+
+<!-- Email to PMO modal -->
+<div id="modal-email" class="modal-backdrop" style="display:none">
+  <div class="modal-card">
+    <h2>Email to PMO</h2>
+    <p>Would you like to send this request directly to the PMO instead of creating a JFR ticket?</p>
+    <div class="modal-btn-row">
+      <button class="btn btn-primary" id="btn-email-yes">Yes, Send Email</button>
+      <button class="btn btn-outline" id="btn-email-no">No, Go Back</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -759,7 +954,7 @@ let state = {
   // Intake extension
   intakeDone: false,
   requestType: null,  // 'project-team' | 'sales' | 'product-market'
-  intakeValues: {},   // featureTitle, problemStatement, proposedFeature, urgency
+  intakeValues: {},   // submitterName, featureTitle, problemStatement, proposedFeature, urgency
   onPreview: false,
 };
 
@@ -1175,6 +1370,7 @@ function buildPreviewText() {
     "  Jira integration coming soon",
     "======================================",
     `Date:              ${now}`,
+    `Submitter:         ${iv.submitterName}`,
     `Feature Title:     ${iv.featureTitle}`,
     `Request Type:      ${REQUEST_TYPE_LABELS[state.requestType] || state.requestType}`,
     `Target Project:    ${getTargetProject(state.requestType)}`,
@@ -1210,15 +1406,22 @@ function renderIntake() {
 
   // Restore saved values
   const iv = state.intakeValues;
+  if (iv.submitterName)    document.getElementById("if-submitterName").value    = iv.submitterName;
   if (iv.featureTitle)     document.getElementById("if-featureTitle").value     = iv.featureTitle;
   if (iv.problemStatement) document.getElementById("if-problemStatement").value = iv.problemStatement;
   if (iv.proposedFeature)  document.getElementById("if-proposedFeature").value  = iv.proposedFeature;
   if (iv.urgency)          document.getElementById("if-urgency").value           = iv.urgency;
 
-  // Highlight selected request type card
+  // Highlight selected request type card and show form if a type is selected
   document.querySelectorAll("#intake-type-grid .choice-card").forEach(btn => {
     btn.classList.toggle("selected", btn.dataset.rtype === state.requestType);
   });
+  const formCard = document.getElementById("intake-form-card");
+  if (state.requestType) {
+    formCard.classList.add("form-visible");
+  } else {
+    formCard.classList.remove("form-visible");
+  }
 
   show("sec-intake");
 }
@@ -1240,7 +1443,7 @@ function submitIntake(e) {
   }
 
   // Validate text fields
-  const textFields = ["featureTitle", "problemStatement", "proposedFeature"];
+  const textFields = ["submitterName", "featureTitle", "problemStatement", "proposedFeature"];
   for (const id of textFields) {
     const el  = document.getElementById("if-" + id);
     const err = document.getElementById("err-" + id);
@@ -1265,6 +1468,7 @@ function submitIntake(e) {
   if (hasError) return;
 
   state.intakeValues = {
+    submitterName:    document.getElementById("if-submitterName").value.trim(),
     featureTitle:     document.getElementById("if-featureTitle").value.trim(),
     problemStatement: document.getElementById("if-problemStatement").value.trim(),
     proposedFeature:  document.getElementById("if-proposedFeature").value.trim(),
@@ -1282,6 +1486,10 @@ function renderPreview() {
   document.getElementById("preview-content").innerHTML = `
     <div class="preview-card">
       <div class="preview-meta-grid">
+        <div>
+          <div class="preview-label">Submitter Name</div>
+          <div class="preview-value">${escapeHtml(iv.submitterName)}</div>
+        </div>
         <div>
           <div class="preview-label">Feature Title</div>
           <div class="preview-value">${escapeHtml(iv.featureTitle)}</div>
@@ -1326,6 +1534,8 @@ function renderPreview() {
       showToast("Clipboard not available in this context.");
     }
   };
+  document.getElementById("btn-send-jira").onclick = showJiraModal;
+  document.getElementById("btn-email-pmo").onclick = showEmailModal;
   document.getElementById("btn-preview-start-over").onclick = startOver;
 
   show("sec-preview");
@@ -1703,17 +1913,161 @@ document.getElementById("subsubtype-back").addEventListener("click", back);
 document.getElementById("form-back").addEventListener("click", back);
 document.getElementById("calc-form").addEventListener("submit", submitForm);
 
-// Intake wiring
+// Intake wiring — progressive disclosure
 document.querySelectorAll("#intake-type-grid .choice-card").forEach(btn => {
   btn.addEventListener("click", () => {
-    state.requestType = btn.dataset.rtype;
-    document.querySelectorAll("#intake-type-grid .choice-card").forEach(b =>
-      b.classList.toggle("selected", b.dataset.rtype === state.requestType)
-    );
+    const formCard = document.getElementById("intake-form-card");
+    const clickedType = btn.dataset.rtype;
+
+    if (state.requestType === clickedType) {
+      // Toggle off: deselect and hide form
+      state.requestType = null;
+      btn.classList.remove("selected");
+      formCard.classList.remove("form-visible");
+    } else {
+      const wasSelected = state.requestType !== null;
+      state.requestType = clickedType;
+
+      document.querySelectorAll("#intake-type-grid .choice-card").forEach(b =>
+        b.classList.toggle("selected", b.dataset.rtype === state.requestType)
+      );
+
+      if (wasSelected) {
+        // Reset form fields when switching type
+        document.getElementById("if-submitterName").value    = "";
+        document.getElementById("if-featureTitle").value     = "";
+        document.getElementById("if-problemStatement").value = "";
+        document.getElementById("if-proposedFeature").value  = "";
+        document.getElementById("if-urgency").value          = "";
+        // Clear errors
+        ["submitterName","featureTitle","problemStatement","proposedFeature","urgency"].forEach(id => {
+          const err = document.getElementById("err-" + id);
+          if (err) err.textContent = "";
+        });
+        // Brief re-animation: remove and re-add class
+        formCard.classList.remove("form-visible");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => { formCard.classList.add("form-visible"); });
+        });
+      } else {
+        formCard.classList.add("form-visible");
+      }
+    }
+
     document.getElementById("err-requestType-group").style.display = "none";
   });
 });
 document.getElementById("intake-form").addEventListener("submit", submitIntake);
+
+/* ═══════════════════════════════════════════════════════════════
+   12. EMAIL BODY BUILDER
+═══════════════════════════════════════════════════════════════ */
+function buildEmailBody() {
+  const iv  = state.intakeValues;
+  const res = state.lastResult;
+  const roi = getROIScore(res.eav);
+  const urgencyFull = getUrgencyLabel(iv.urgency);
+  const notes = state.values.notes ? String(state.values.notes).trim() : "";
+
+  const lines = [
+    "Roadmap Intake Request",
+    "",
+    `Submitter: ${iv.submitterName}`,
+    `Request Type: ${REQUEST_TYPE_LABELS[state.requestType] || state.requestType}`,
+    `Feature Title: ${iv.featureTitle}`,
+    `Target Project: ${getTargetProject(state.requestType)}`,
+    `Urgency: ${urgencyFull}`,
+    `EAV: ${formatMoney(res.eav)}`,
+    `Estimated ROI Score: ${roi} \u2013 ${getROIScoreLabel(roi)}`,
+    "",
+    "Problem Statement:",
+    iv.problemStatement,
+    "",
+    "Proposed Feature:",
+    iv.proposedFeature,
+    "",
+    "EAV Breakdown:",
+    res.formula,
+  ];
+
+  if (notes) {
+    lines.push("", "Notes:", notes);
+  }
+
+  return lines.join("\n");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   13. MODAL FUNCTIONS
+═══════════════════════════════════════════════════════════════ */
+
+// Welcome modal
+document.getElementById("btn-welcome-proceed").addEventListener("click", () => {
+  document.getElementById("modal-welcome").style.display = "none";
+});
+
+// Jira modal
+function showJiraModal() {
+  document.getElementById("jira-modal-ask").style.display   = "block";
+  document.getElementById("jira-modal-ticket").style.display = "none";
+  document.getElementById("jira-ticket-input").value         = "";
+  document.getElementById("modal-jira").style.display        = "flex";
+}
+
+document.getElementById("btn-jira-yes").addEventListener("click", () => {
+  document.getElementById("jira-modal-ask").style.display    = "none";
+  document.getElementById("jira-modal-ticket").style.display = "block";
+});
+
+document.getElementById("btn-jira-no").addEventListener("click", () => {
+  document.getElementById("modal-jira").style.display        = "none";
+  document.getElementById("jira-redirect-overlay").style.display = "flex";
+});
+
+document.getElementById("btn-jira-confirm").addEventListener("click", () => {
+  const ticketId = document.getElementById("jira-ticket-input").value.trim();
+  document.getElementById("modal-jira").style.display = "none";
+  const confirm = document.getElementById("jira-inline-confirm");
+  confirm.textContent = ticketId
+    ? `Noted \u2014 will link to ${ticketId} once Jira integration is live.`
+    : "Noted \u2014 will link once Jira integration is live.";
+  confirm.style.display = "inline";
+});
+
+document.getElementById("btn-jira-cancel").addEventListener("click", () => {
+  document.getElementById("modal-jira").style.display = "none";
+});
+
+document.getElementById("btn-jira-redirect-back").addEventListener("click", () => {
+  document.getElementById("jira-redirect-overlay").style.display = "none";
+});
+
+// Email to PMO modal
+function showEmailModal() {
+  document.getElementById("modal-email").style.display = "flex";
+}
+
+document.getElementById("btn-email-no").addEventListener("click", () => {
+  document.getElementById("modal-email").style.display = "none";
+});
+
+document.getElementById("btn-email-yes").addEventListener("click", () => {
+  document.getElementById("modal-email").style.display = "none";
+  triggerEmail();
+  const confirm = document.getElementById("email-inline-confirm");
+  confirm.textContent = "Email client opened \u2014 if nothing happened, use Copy Summary and paste manually.";
+  confirm.style.display = "inline";
+});
+
+function triggerEmail() {
+  const iv = state.intakeValues;
+  const subject = `[${iv.featureTitle}] - Roadmap Intake Request`;
+  const body    = buildEmailBody();
+  window.location.href =
+    "mailto:mhan@eknengineering.com" +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body="    + encodeURIComponent(body);
+}
 
 // Kick off
 render();
