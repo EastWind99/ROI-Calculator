@@ -1034,24 +1034,21 @@ function buildPathLabel() {
 ═══════════════════════════════════════════════════════════════ */
 function computePT_CV_NEW(v) {
   const acv     = Number(v.acv);
-  const prob    = parseFloat(v.probability);
   const evid    = parseFloat(v.evidence);
   const raw     = acv;
-  const eav     = raw * prob * evid;
+  const eav     = raw * evid;
 
-  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
   const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
 
   return {
     raw, eav,
     usesRF: false,
     multipliers: [
-      { label: "Realization Probability",  value: prob, note: probLabel },
       { label: "Evidence Quality",         value: evid, note: evidLabel },
     ],
     formula: [
-      "EAV = ACV × Realization Probability × Evidence Quality",
-      `    = ${formatMoney(acv)} × ${prob} × ${evid}`,
+      "EAV = ACV × Evidence Quality",
+      `    = ${formatMoney(acv)} × ${evid}`,
       `    = ${formatMoney(eav)}`,
     ].join("\n"),
     warnings: [],
@@ -1061,12 +1058,10 @@ function computePT_CV_NEW(v) {
 function computePT_CV_RET(v) {
   const acv      = Number(v.acv);
   const riskPct  = Number(v.revenueAtRisk);
-  const prob     = parseFloat(v.probability);
   const evid     = parseFloat(v.evidence);
   const raw      = acv * (riskPct / 100);
-  const eav      = raw * prob * evid;
+  const eav      = raw * evid;
 
-  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
   const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
 
   return {
@@ -1074,7 +1069,6 @@ function computePT_CV_RET(v) {
     usesRF: false,
     multipliers: [
       { label: "% Revenue At Risk",        value: `${riskPct}%` },
-      { label: "Realization Probability",  value: prob, note: probLabel },
       { label: "Evidence Quality",         value: evid, note: evidLabel },
     ],
     formula: [
@@ -1082,8 +1076,8 @@ function computePT_CV_RET(v) {
       `    = ${formatMoney(acv)} × (${riskPct} ÷ 100)`,
       `    = ${formatMoney(raw)}`,
       "",
-      "EAV = Raw × Realization Probability × Evidence Quality",
-      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      "EAV = Raw × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${evid}`,
       `    = ${formatMoney(eav)}`,
     ].join("\n"),
     warnings: [],
@@ -1094,13 +1088,11 @@ function computePT_OE(v) {
   const hours   = Number(v.hoursSaved);
   const members = Number(v.teamMembers);
   const cost    = Number(v.hourlyCost);
-  const prob    = parseFloat(v.probability);
   const evid    = parseFloat(v.evidence);
   const RF      = CONFIG.constants.RF;
   const raw     = hours * members * cost * 12 * RF;
-  const eav     = raw * prob * evid;
+  const eav     = raw * evid;
 
-  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
   const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
   const warns = [];
   if (hours > CONFIG.constants.HOURS_WARN) {
@@ -1116,7 +1108,6 @@ function computePT_OE(v) {
       { label: "Avg Loaded Hourly Cost",         value: formatMoney(cost) },
       { label: "Months",                         value: 12 },
       { label: "Realization Factor (RF)",        value: RF },
-      { label: "Realization Probability",        value: prob, note: probLabel },
       { label: "Evidence Quality",               value: evid, note: evidLabel },
     ],
     formula: [
@@ -1124,8 +1115,8 @@ function computePT_OE(v) {
       `    = ${hours} × ${members} × ${formatMoney(cost)} × 12 × ${RF}`,
       `    = ${formatMoney(raw)}`,
       "",
-      "EAV = Raw × Realization Probability × Evidence Quality",
-      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      "EAV = Raw × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${evid}`,
       `    = ${formatMoney(eav)}`,
     ].join("\n"),
     warnings: warns,
@@ -1162,14 +1153,12 @@ function computePM_UOE(v) {
   const hours    = Number(v.hoursSaved);
   const users    = Number(v.usersImpacted);
   const rate     = Number(v.persona);
-  const prob     = parseFloat(v.probability);
   const evid     = parseFloat(v.evidence);
   const RF       = CONFIG.constants.RF;
   const raw      = hours * users * rate * 12 * RF;
-  const eav      = raw * prob * evid;
+  const eav      = raw * evid;
 
   const personaLabel = getLabelFromOptions("personaOptions", v.persona);
-  const probLabel    = getLabelFromOptions("probabilityOptions", v.probability);
   const evidLabel    = getLabelFromOptions("evidenceOptions", v.evidence);
   const warns = [];
   if (hours > CONFIG.constants.HOURS_WARN) {
@@ -1185,7 +1174,6 @@ function computePM_UOE(v) {
       { label: `Persona Rate (${personaLabel.split(" (")[0]})`, value: `$${rate}/hr` },
       { label: "Months",                      value: 12 },
       { label: "Realization Factor (RF)",     value: RF },
-      { label: "Realization Probability",     value: prob, note: probLabel },
       { label: "Evidence Quality",            value: evid, note: evidLabel },
     ],
     formula: [
@@ -1193,8 +1181,8 @@ function computePM_UOE(v) {
       `    = ${hours} × ${users} × $${rate}/hr × 12 × ${RF}`,
       `    = ${formatMoney(raw)}`,
       "",
-      "EAV = Raw × Realization Probability × Evidence Quality",
-      `    = ${formatMoney(raw)} × ${prob} × ${evid}`,
+      "EAV = Raw × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${evid}`,
       `    = ${formatMoney(eav)}`,
     ].join("\n"),
     warnings: warns,
@@ -1205,13 +1193,11 @@ function computePM_MCI(v) {
   const opps    = Number(v.opportunities);
   const avgAcv  = Number(v.avgAcv);
   const wr      = parseFloat(v.winRate);
-  const prob    = parseFloat(v.probability);
   const evid    = parseFloat(v.evidence);
   const raw     = opps * avgAcv;
-  const eav     = raw * wr * prob * evid;
+  const eav     = raw * wr * evid;
 
   const winLabel  = getLabelFromOptions("winRateOptions", v.winRate);
-  const probLabel = getLabelFromOptions("probabilityOptions", v.probability);
   const evidLabel = getLabelFromOptions("evidenceOptions", v.evidence);
 
   return {
@@ -1221,7 +1207,6 @@ function computePM_MCI(v) {
       { label: "Opportunities Opened",            value: opps },
       { label: "Avg Annual Contract Value",       value: formatMoney(avgAcv) },
       { label: `Win Rate (${winLabel})`,          value: wr },
-      { label: "Realization Probability",         value: prob, note: probLabel },
       { label: "Evidence Quality",                value: evid, note: evidLabel },
     ],
     formula: [
@@ -1229,8 +1214,8 @@ function computePM_MCI(v) {
       `    = ${opps} × ${formatMoney(avgAcv)}`,
       `    = ${formatMoney(raw)}`,
       "",
-      "EAV = Raw × Win Rate × Realization Probability × Evidence Quality",
-      `    = ${formatMoney(raw)} × ${wr} × ${prob} × ${evid}`,
+      "EAV = Raw × Win Rate × Evidence Quality",
+      `    = ${formatMoney(raw)} × ${wr} × ${evid}`,
       `    = ${formatMoney(eav)}`,
     ].join("\n"),
     warnings: [],
