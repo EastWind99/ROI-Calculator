@@ -848,7 +848,6 @@ const CONFIG = {
               formulaKey: "PT_CV_NEW",
               fields: [
                 { id: "acv",         label: "Annual Contract Value",         type: "number",   min: 0, max: 99999999, prefix: "$", required: true, hint: "Total annual value of the contract" },
-                { id: "probability", label: "Realization Probability",       type: "select",   options: "probabilityOptions", required: true, hint: "How likely is this value to be realized?" },
                 { id: "evidence",    label: "Evidence Quality",              type: "select",   options: "evidenceOptions",    required: true, hint: "How strong is your supporting evidence?" },
                 { id: "notes",       label: "Notes (optional)",              type: "textarea", required: false },
               ],
@@ -861,7 +860,6 @@ const CONFIG = {
               fields: [
                 { id: "acv",          label: "Annual Contract Value",       type: "number",   min: 0, max: 99999999, prefix: "$", required: true },
                 { id: "revenueAtRisk",label: "% Revenue At Risk",           type: "number",   min: 0, max: 100, suffix: "%", required: true, hint: "What percentage of this contract is at risk?" },
-                { id: "probability",  label: "Realization Probability",     type: "select",   options: "probabilityOptions", required: true },
                 { id: "evidence",     label: "Evidence Quality",            type: "select",   options: "evidenceOptions",    required: true },
                 { id: "notes",        label: "Notes (optional)",            type: "textarea", required: false },
               ],
@@ -878,7 +876,6 @@ const CONFIG = {
             { id: "hoursSaved",  label: "Hours saved per employee per month", type: "number", min: 0, max: 160, required: true, hint: "Typical monthly capacity is ~160 hrs", hoursWarn: true },
             { id: "teamMembers", label: "Number of team members impacted",    type: "number", min: 0, max: 200, required: true },
             { id: "hourlyCost",  label: "Avg Loaded Hourly Cost",             type: "number", min: 0, max: 9999, prefix: "$", required: true },
-            { id: "probability", label: "Realization Probability",            type: "select", options: "probabilityOptions", required: true },
             { id: "evidence",    label: "Evidence Quality",                   type: "select", options: "evidenceOptions",    required: true },
             { id: "notes",       label: "Notes (optional)",                   type: "textarea", required: false },
           ],
@@ -916,7 +913,6 @@ const CONFIG = {
             { id: "hoursSaved",    label: "Hours saved per user per month", type: "number", min: 0, max: 160, required: true, hint: "Typical monthly capacity is ~160 hrs", hoursWarn: true },
             { id: "usersImpacted", label: "Users impacted",                 type: "number", min: 0, max: 200, required: true },
             { id: "persona",       label: "Persona (Hourly Rate)",          type: "select", options: "personaOptions", required: true, hint: "Select the closest persona match" },
-            { id: "probability",   label: "Realization Probability",        type: "select", options: "probabilityOptions", required: true, hint: "Adoption likelihood" },
             { id: "evidence",      label: "Evidence Quality",               type: "select", options: "evidenceOptions",    required: true },
             { id: "notes",         label: "Notes (optional)",               type: "textarea", required: false },
           ],
@@ -931,7 +927,6 @@ const CONFIG = {
             { id: "opportunities", label: "Opportunities opened",           type: "number", min: 0, max: 1000, required: true },
             { id: "avgAcv",        label: "Avg Annual Contract Value",      type: "number", min: 0, max: 99999999, prefix: "$", required: true },
             { id: "winRate",       label: "Win Rate",                       type: "select", options: "winRateOptions",     required: true },
-            { id: "probability",   label: "Realization Probability",        type: "select", options: "probabilityOptions", required: true },
             { id: "evidence",      label: "Evidence Quality",               type: "select", options: "evidenceOptions",    required: true },
             { id: "notes",         label: "Notes (optional)",               type: "textarea", required: false },
           ],
@@ -1497,10 +1492,6 @@ function renderPreview() {
         <div>
           <div class="preview-label">Request Type</div>
           <div class="preview-value">${escapeHtml(REQUEST_TYPE_LABELS[state.requestType] || state.requestType)}</div>
-        </div>
-        <div>
-          <div class="preview-label">Target Project</div>
-          <div class="preview-value">${escapeHtml(getTargetProject(state.requestType))}</div>
         </div>
         <div>
           <div class="preview-label">Urgency</div>
